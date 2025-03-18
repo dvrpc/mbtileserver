@@ -367,20 +367,26 @@
       
       metadataButtons.forEach(button => {
         button.addEventListener('click', async function() {
-          const url = this.getAttribute('data-url');
-          const name = this.closest('.tileset-card').getAttribute('data-name');
-          
-          metadataTitle.textContent = name + ' Metadata';
-          metadataBody.innerHTML = '<p>Loading metadata...</p>';
-          metadataModal.style.display = 'flex';
-          
-          try {
-            const response = await fetch(url);
+        const url = this.getAttribute('data-url');
+        const name = this.closest('.tileset-card').getAttribute('data-name');
+        
+        metadataTitle.textContent = name + ' Metadata';
+        metadataBody.innerHTML = '<p>Loading metadata...</p>';
+        metadataModal.style.display = 'flex';
+        
+        try {
+            // Construct a full HTTPS URL using the current page's host and the original URL path
+            const fullUrl = `https://${window.location.host}${url.replace(/^https?:\/\/[^/]+/, '')}`;
+            
+            console.log('Fetching URL:', fullUrl);
+            
+            const response = await fetch(fullUrl);
             const metadata = await response.json();
             displayMetadata(metadata);
-          } catch (error) {
+        } catch (error) {
+            console.error('Full error:', error);
             metadataBody.innerHTML = '<p>Error loading metadata: ' + error.message + '</p>';
-          }
+        }
         });
       });
       
