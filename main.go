@@ -28,6 +28,8 @@ import (
 
 	mbtiles "github.com/brendan-ward/mbtiles-go"
 	"github.com/consbio/mbtileserver/handlers"
+	"html/template"
+	"io"
 )
 
 var rootCmd = &cobra.Command{
@@ -358,6 +360,12 @@ func serve() {
 	}
 
 	e := echo.New()
+
+	// Setup template renderer
+	e.Renderer = &handlers.TemplateRenderer{
+		Templates: template.Must(template.ParseFiles("handlers/templates/home.html")),
+	}
+
 	e.HideBanner = true
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
@@ -373,6 +381,11 @@ func serve() {
 		hmacAuth := handlers.HMACAuthMiddleware(secretKey, svcSet)
 		e.Use(echo.WrapMiddleware(hmacAuth))
 	}
+
+	// Add home page route
+	e.GET("/", func(c echo.Context) error {
+		return svcSet.HomeHandler(c)
+	})
 
 	// Get HTTP.Handler for the service set, and wrap for use in echo
 	e.GET("/*", echo.WrapHandler(svcSet.Handler()))
@@ -579,4 +592,14 @@ type errorLogger struct {
 func (el *errorLogger) Write(p []byte) (n int, err error) {
 	el.log.Errorln(string(p))
 	return len(p), nil
+}
+
+// TemplateRenderer is a custom renderer for Echo
+type TemplateRenderer struct {
+	Templates *template.Template
+}
+
+// Render renders a template document
+func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.Templates.ExecuteTemplate(w, name, data)
 }

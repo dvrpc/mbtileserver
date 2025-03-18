@@ -1,0 +1,495 @@
+{{ define "home" }}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tile Catalog</title>
+  <style>
+    :root {
+      --primary-color: #0078A8;
+      --secondary-color: #004C66;
+      --light-color: #F5F5F5;
+      --border-color: #E0E0E0;
+      --hover-color: #F0F8FF;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: var(--light-color);
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    
+    header .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+    
+    .tileset-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .tileset-card {
+      background: white;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .tileset-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .tileset-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px;
+      position: relative;
+    }
+    
+    .tileset-type {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+      padding: 3px 8px;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+    
+    .tileset-body {
+      padding: 15px;
+    }
+    
+    .tileset-description {
+      margin-bottom: 15px;
+      color: #666;
+      font-size: 0.9rem;
+      height: 60px;
+      overflow: hidden;
+    }
+    
+    .tileset-actions {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 8px 15px;
+      border-radius: 3px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    .btn-secondary {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .metadata-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .metadata-content {
+      background-color: white;
+      border-radius: 5px;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    
+    .metadata-header {
+      background-color: var(--primary-color);
+      color: white;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .metadata-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    
+    .metadata-body {
+      padding: 20px;
+    }
+    
+    .metadata-section {
+      margin-bottom: 20px;
+    }
+    
+    .metadata-section h3 {
+      margin-top: 0;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+      color: var(--primary-color);
+    }
+    
+    .metadata-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    
+    .metadata-table th, .metadata-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .metadata-table th {
+      background-color: #f5f5f5;
+      font-weight: 600;
+    }
+    
+    .metadata-table tr:hover {
+      background-color: var(--hover-color);
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    
+    .layer-info {
+      background-color: #f9f9f9;
+      border-radius: 3px;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+    }
+    
+    .layer-info h4 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      color: var(--primary-color);
+    }
+    
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--primary-color);
+      cursor: pointer;
+      font-size: 0.9rem;
+      padding: 0;
+      margin-left: 5px;
+    }
+    
+    .copy-btn:hover {
+      text-decoration: underline;
+    }
+    
+    .search-bar {
+      display: flex;
+      margin-bottom: 30px;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid var(--border-color);
+      border-radius: 5px 0 0 5px;
+      font-size: 1rem;
+    }
+    
+    .search-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      padding: 0 20px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    
+    .search-btn:hover {
+      background-color: var(--secondary-color);
+    }
+    
+    @media (max-width: 768px) {
+      .tileset-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      header .container {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+
+    .tileset-count {
+      color: #ddd;
+      font-size: 0.9rem;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Tile Catalog <span class="tileset-count">{{len .Tilesets}} tilesets available</span></h1>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="search-bar">
+      <input type="text" id="search-input" class="search-input" placeholder="Search tilesets...">
+      <button class="search-btn" id="search-button">Search</button>
+    </div>
+    
+    <div class="tileset-grid" id="tileset-grid">
+      {{range .Tilesets}}
+      <div class="tileset-card" data-name="{{.Name}}" data-url="{{.URL}}">
+        <div class="tileset-header">
+          <h2>{{.Name}}</h2>
+          <span class="tileset-type">{{.ImageType}}</span>
+        </div>
+        <div class="tileset-body">
+          <div class="tileset-description">
+            {{if .Description}}{{.Description}}{{else}}No description available{{end}}
+          </div>
+          <div class="tileset-actions">
+            <a href="{{.URL}}/map" class="btn btn-primary">View Map</a>
+            <button class="btn btn-secondary show-metadata" data-url="{{.URL}}">Metadata</button>
+          </div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+  </div>
+  
+  <div class="metadata-modal" id="metadata-modal">
+    <div class="metadata-content">
+      <div class="metadata-header">
+        <h2 id="metadata-title">Tileset Metadata</h2>
+        <button class="close-btn" id="close-modal">&times;</button>
+      </div>
+      <div class="metadata-body" id="metadata-body">
+        <!-- Metadata content will be loaded here -->
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Search functionality
+      const searchInput = document.getElementById('search-input');
+      const searchButton = document.getElementById('search-button');
+      const tilesetGrid = document.getElementById('tileset-grid');
+      const tilesetCards = document.querySelectorAll('.tileset-card');
+      
+      function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase();
+        
+        tilesetCards.forEach(card => {
+          const name = card.getAttribute('data-name').toLowerCase();
+          if (name.includes(searchTerm)) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      }
+      
+      searchButton.addEventListener('click', performSearch);
+      searchInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+          performSearch();
+        }
+      });
+      
+      // Metadata modal
+      const metadataModal = document.getElementById('metadata-modal');
+      const closeModal = document.getElementById('close-modal');
+      const metadataTitle = document.getElementById('metadata-title');
+      const metadataBody = document.getElementById('metadata-body');
+      const metadataButtons = document.querySelectorAll('.show-metadata');
+      
+      metadataButtons.forEach(button => {
+        button.addEventListener('click', async function() {
+          const url = this.getAttribute('data-url');
+          const name = this.closest('.tileset-card').getAttribute('data-name');
+          
+          metadataTitle.textContent = name + ' Metadata';
+          metadataBody.innerHTML = '<p>Loading metadata...</p>';
+          metadataModal.style.display = 'flex';
+          
+          try {
+            const response = await fetch(url);
+            const metadata = await response.json();
+            displayMetadata(metadata);
+          } catch (error) {
+            metadataBody.innerHTML = '<p>Error loading metadata: ' + error.message + '</p>';
+          }
+        });
+      });
+      
+      function displayMetadata(metadata) {
+        let html = '<div class="metadata-section">';
+        html += '<h3>Basic Information</h3>';
+        html += '<table class="metadata-table">';
+        
+        // Basic metadata
+        const basicProps = ['name', 'description', 'format', 'version', 'scheme', 'type', 'minzoom', 'maxzoom', 'tilesize'];
+        basicProps.forEach(prop => {
+          if (metadata[prop] !== undefined) {
+            html += `<tr><th>${prop}</th><td>${metadata[prop]}</td></tr>`;
+          }
+        });
+        
+        // Bounds
+        if (metadata.bounds) {
+          html += `<tr><th>bounds</th><td>[${metadata.bounds.join(', ')}]</td></tr>`;
+        }
+        
+        html += '</table>';
+        html += '</div>';
+        
+        // Tiles URLs
+        if (metadata.tiles && metadata.tiles.length > 0) {
+          html += '<div class="metadata-section">';
+          html += '<h3>Tile URLs</h3>';
+          html += '<table class="metadata-table">';
+          
+          metadata.tiles.forEach((tile, index) => {
+            html += `<tr><th>Tile URL ${index + 1}</th><td>${tile} <button class="copy-btn" data-copy="${tile}">Copy</button></td></tr>`;
+          });
+          
+          html += '</table>';
+          html += '</div>';
+        }
+        
+        // Vector layers
+        if (metadata.vector_layers && metadata.vector_layers.length > 0) {
+          html += '<div class="metadata-section">';
+          html += '<h3>Vector Layers</h3>';
+          
+          metadata.vector_layers.forEach(layer => {
+            html += '<div class="layer-info">';
+            html += `<h4>${layer.id}</h4>`;
+            if (layer.description) html += `<p>${layer.description}</p>`;
+            
+            html += '<table class="metadata-table">';
+            html += `<tr><th>minzoom</th><td>${layer.minzoom}</td></tr>`;
+            html += `<tr><th>maxzoom</th><td>${layer.maxzoom}</td></tr>`;
+            
+            if (layer.fields) {
+              html += '<tr><th>Fields</th><td>';
+              for (const field in layer.fields) {
+                html += `<div><strong>${field}:</strong> ${layer.fields[field]}</div>`;
+              }
+              html += '</td></tr>';
+            }
+            
+            html += '</table>';
+            html += '</div>';
+          });
+          
+          html += '</div>';
+        }
+        
+        // Links
+        html += '<div class="metadata-section">';
+        html += '<h3>Links</h3>';
+        html += '<table class="metadata-table">';
+        
+        if (metadata.map) {
+          html += `<tr><th>Map Preview</th><td><a href="${metadata.map}" target="_blank">Open Map</a></td></tr>`;
+        }
+        
+        html += `<tr><th>TileJSON</th><td>${window.location.origin}${metadata.url} <button class="copy-btn" data-copy="${window.location.origin}${metadata.url}">Copy</button></td></tr>`;
+        
+        html += '</table>';
+        html += '</div>';
+        
+        metadataBody.innerHTML = html;
+        
+        // Setup copy buttons
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const textToCopy = this.getAttribute('data-copy');
+            navigator.clipboard.writeText(textToCopy).then(() => {
+              const originalText = this.textContent;
+              this.textContent = 'Copied!';
+              setTimeout(() => {
+                this.textContent = originalText;
+              }, 1500);
+            });
+          });
+        });
+      }
+      
+      closeModal.addEventListener('click', function() {
+        metadataModal.style.display = 'none';
+      });
+      
+      window.addEventListener('click', function(event) {
+        if (event.target === metadataModal) {
+          metadataModal.style.display = 'none';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+{{ end }}
