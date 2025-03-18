@@ -1,57 +1,118 @@
 {{ define "map" }}
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>{{.ID}} Preview</title>
-    <meta
-      name="viewport"
-      content="initial-scale=1,maximum-scale=1,user-scalable=no"
-    />
-    <script src="{{.URL}}/map/static/index.js"></script>
-    <link href="{{.URL}}/map/static/index.css" rel="stylesheet" />
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.ID}} - Preview</title>
+  <link href="{{.URL}}/map/static/index.css" rel="stylesheet" />
+  <script src="{{.URL}}/map/static/index.js"></script>
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+    
+    /* Enhanced inspector panel styling */
+    #info-panel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      padding: 10px;
+      border-radius: 4px;
+      width: 300px;
+      max-height: calc(100vh - 20px); /* Full height minus margins */
+      overflow-y: auto;
+      z-index: 999;
+      display: none;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      font-family: 'Open Sans', 'Helvetica Neue', Arial, sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    #info-panel h4 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+    }
+    #feature-properties strong {
+      display: inline-block;
+      width: 40%;
+      margin-right: 5px;
+      vertical-align: top;
+    }
+    .layer-name {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #0078A8;
+      border-top: 1px solid #eee;
+      padding-top: 5px;
+    }
+    .maplibregl-ctrl-attrib {
+      font-size: 11px;
+    }
+    .leaflet-control-layers-toggle {
+      width: 36px;
+      height: 36px;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="display:none;">{{.ID}}</h1>
+  <div id='map'></div>
+  <div id="info-panel">
+    <h4>Feature Properties</h4>
+    <div id="feature-properties"></div>
+  </div>
+  <script>
+    // Load raw JSON directly from template
+    const tileJSON = {{.TileJSON}};
+    const basemapStyleURL = {{.BasemapStyleURL}};
+    const basemapTilesURL = {{.BasemapTilesURL}};
+
+    function isWebglSupported() {
+      if (window.WebGLRenderingContext) {
+        const canvas = document.createElement('canvas');
+        try {
+          const context = canvas.getContext('webgl2') || canvas.getContext('webgl');
+          if (context && typeof context.getParameter == 'function') {
+            return true;
+          }
+        } catch (e) {
+          // WebGL is supported, but disabled
+        }
+        return false;
       }
+      // WebGL not supported
+      return false;
+    }
 
-      #map {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        width: 100%;
-      }
-    </style>
-  </head>
+    // Always use vector rendering for TileJSON with vector_layers
+    const useVector = tileJSON.vector_layers || isWebglSupported();
 
-  <body>
-    <div id="map"></div>
-    <script>
-      // Load raw JSON directly from template
-      const tileJSON = {{.TileJSON}};
-      const basemapStyleURL = {{.BasemapStyleURL}};
-      const basemapTilesURL = {{.BasemapTilesURL}};
+    let center = tileJSON.center;
+    let zoom = tileJSON.minzoom || 0;
 
-      let center = tileJSON.center;
-      let zoom = tileJSON.minzoom || 0;
+    if (tileJSON.bounds) {
+      const { offsetWidth: width, offsetHeight: height } = document.querySelector('#map');
+      const viewport = geoViewport.viewport(
+        tileJSON.bounds,
+        [width, height],
+        undefined,
+        undefined,
+        undefined,
+        true
+      );
+      center = viewport.center;
+      zoom = Math.max(viewport.zoom - 1, zoom);
+    }
 
-      if (tileJSON.bounds) {
-        const { offsetWidth: width, offsetHeight: height } = document.querySelector('#map');
-        const viewport = geoViewport.viewport(
-          tileJSON.bounds,
-          [width, height],
-          undefined,
-          undefined,
-          undefined,
-          true
-        );
-        center = viewport.center;
-        zoom = Math.max(viewport.zoom - 1, zoom);
-      }
-
+    if (useVector) {
       const sources = {};
       const layers = [];
+      const layersBySourceLayer = {};
 
       if (basemapTilesURL) {
         sources.basemap = {
@@ -75,42 +136,55 @@
         }
 
         tileJSON.vector_layers.forEach(function(srcLyr, i) {
+          // Track which layers correspond to which source layers
+          if (!layersBySourceLayer[srcLyr.id]) {
+            layersBySourceLayer[srcLyr.id] = [];
+          }
+          
+          const polyLayerId = "overlay-poly-" + srcLyr.id;
+          const lineLayerId = "overlay-line-" + srcLyr.id;
+          const pointLayerId = "overlay-point-" + srcLyr.id;
+          
+          layersBySourceLayer[srcLyr.id].push(polyLayerId);
+          layersBySourceLayer[srcLyr.id].push(lineLayerId);
+          layersBySourceLayer[srcLyr.id].push(pointLayerId);
+          
           layers.push({
-            id: "overlay-poly-" + i,
+            id: polyLayerId,
             source: "overlay",
             "source-layer": srcLyr.id,
             filter: ["==", "$type", "Polygon"],
             type: "fill",
             paint: {
-              "fill-color": "orange",
+              "fill-color": "rgba(0, 100, 180, 0.5)",
               "fill-opacity": 0.5,
-              "fill-outline-color": "red"
+              "fill-outline-color": "rgba(0, 0, 0, 1)"
             }
           });
 
           layers.push({
-            id: "overlay-line-" + i,
+            id: lineLayerId,
             source: "overlay",
             "source-layer": srcLyr.id,
             filter: ["==", "$type", "LineString"],
             type: "line",
             paint: {
-              "line-color": "red",
+              "line-color": "rgba(0, 100, 180, 0.8)",
               "line-opacity": 0.75,
               "line-width": 2
             }
           });
 
           layers.push({
-            id: "overlay-point-" + i,
+            id: pointLayerId,
             source: "overlay",
             "source-layer": srcLyr.id,
             filter: ["==", "$type", "Point"],
             type: "circle",
             paint: {
-              "circle-radius": 6,
-              "circle-color": "#F00",
-              "circle-opacity": 1
+              "circle-radius": 5,
+              "circle-color": "rgba(0, 100, 180, 0.8)",
+              "circle-opacity": 0.8
             }
           });
         });
@@ -131,10 +205,10 @@
       }
 
       const style = basemapStyleURL || {
-          version: 8,
-          sources,
-          layers
-        }
+        version: 8,
+        sources,
+        layers
+      }
 
       var map = new maplibregl.Map({
         container: "map",
@@ -142,12 +216,18 @@
         minZoom: tileJSON.minzoom,
         maxZoom: tileJSON.maxzoom,
         center,
-        zoom
+        zoom,
+        hash: true
       });
-      map.addControl(new maplibregl.NavigationControl());
+      
+      map.addControl(new maplibregl.NavigationControl({
+        visualizePitch: true,
+        showZoom: true,
+        showCompass: true
+      }));
 
       map.on('load', () => {
-        // add the sources and layers manually if using a basemap style
+        // Add the sources and layers manually if using a basemap style
         if (basemapStyleURL) {
           Object.entries(sources).map(([id, source])=> {
             map.addSource(id, source)
@@ -157,9 +237,111 @@
             map.addLayer(layer)
           });
         }
-      });
+        
+        // Add hover identification for vector layers
+        if (tileJSON.vector_layers) {
+          // Get all layer IDs for identification
+          const identifyLayers = layers
+            .filter(layer => layer.source === "overlay")
+            .map(layer => layer.id);
 
-    </script>
-  </body>
+          const infoPanel = document.getElementById('info-panel');
+          const featureProperties = document.getElementById('feature-properties');
+          
+          // Function to display features from all layers
+          function displayFeatures(point) {
+            // Get all features from all vector layers at the point
+            let foundFeatures = false;
+            let html = '';
+            
+            // Group features by source layer
+            const featuresBySourceLayer = {};
+            
+            // Query each source layer separately to ensure we get features from all layers
+            for (const sourceLayerId in layersBySourceLayer) {
+              const layerIds = layersBySourceLayer[sourceLayerId];
+              const features = map.queryRenderedFeatures(point, { layers: layerIds });
+              
+              if (features.length > 0) {
+                foundFeatures = true;
+                featuresBySourceLayer[sourceLayerId] = features;
+              }
+            }
+            
+            // Display features from each source layer
+            if (foundFeatures) {
+              for (const sourceLayerId in featuresBySourceLayer) {
+                const features = featuresBySourceLayer[sourceLayerId];
+                
+                // Add source layer heading
+                html += `<div class="layer-name">${sourceLayerId}</div>`;
+                
+                // Show the first feature from this layer
+                const feature = features[0];
+                for (const key in feature.properties) {
+                  if (feature.properties[key] !== null && feature.properties[key] !== undefined) {
+                    html += `<strong>${key}:</strong> ${feature.properties[key]}<br>`;
+                  }
+                }
+              }
+              
+              featureProperties.innerHTML = html;
+              infoPanel.style.display = 'block';
+            } else {
+              infoPanel.style.display = 'none';
+            }
+          }
+          
+          // Set up mousemove handler for hover identification
+          map.on('mousemove', (e) => {
+            displayFeatures(e.point);
+          });
+          
+          // Handle cursor change for all identify layers
+          identifyLayers.forEach(layerId => {
+            map.on('mouseenter', layerId, () => {
+              map.getCanvas().style.cursor = 'pointer';
+            });
+            
+            map.on('mouseleave', layerId, () => {
+              map.getCanvas().style.cursor = '';
+            });
+          });
+          
+          // Hide info panel when mouse leaves the map
+          map.getCanvas().addEventListener('mouseleave', () => {
+            infoPanel.style.display = 'none';
+          });
+        }
+      });
+    } else {
+      // Leaflet-based fallback rendering for browsers without WebGL
+      var map = L.map('map', { minZoom: 1, zoomControl: false });
+      new L.Control.Zoom({ position: 'topright' }).addTo(map);
+      
+      var tile_urls = tileJSON.tiles || [];
+      var tile_attribution = tileJSON.attribution || '';
+      var tile_minzoom = tileJSON.minzoom || 0;
+      var tile_maxzoom = tileJSON.maxzoom || 18;
+      
+      for (var i = 0; i < tile_urls.length; i++) {
+        L.tileLayer(tile_urls[i], {
+          tileSize: 512,
+          zoomOffset: -1,
+          minZoom: tile_minzoom,
+          maxZoom: tile_maxzoom,
+          attribution: tile_attribution
+        }).addTo(map);
+      }
+      
+      map.setView(center, zoom);
+      
+      // Enable URL hash for leaflet too
+      setTimeout(function() {
+        new L.Hash(map);
+      }, 0);
+    }
+  </script>
+</body>
 </html>
 {{ end }}
