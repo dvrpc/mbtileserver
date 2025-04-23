@@ -76,6 +76,7 @@ var (
 	redirect            bool
 	enableReloadSignal  bool
 	enableReloadFSWatch bool
+	enableRefresh       bool
 	generateIDs         bool
 	enableArcGIS        bool
 	disablePreview      bool
@@ -104,6 +105,7 @@ func init() {
 	flags.BoolVarP(&enableArcGIS, "enable-arcgis", "", false, "Enable ArcGIS Mapserver endpoints")
 	flags.BoolVarP(&enableReloadFSWatch, "enable-fs-watch", "", false, "Enable reloading of tilesets by watching filesystem")
 	flags.BoolVarP(&enableReloadSignal, "enable-reload-signal", "", false, "Enable graceful reload using HUP signal to the server process")
+	flags.BoolVar(&enableRefresh, "enable-refresh", false, "Enable endpoint for refreshing tilesets from ArcGIS feature services")
 
 	flags.BoolVarP(&disablePreview, "disable-preview", "", false, "Disable map preview for each tileset (enabled by default)")
 	flags.BoolVarP(&disableTileJSON, "disable-tilejson", "", false, "Disable TileJSON endpoint for each tileset (enabled by default)")
@@ -413,6 +415,11 @@ func serve() {
 		listener, err = net.FileListener(f)
 	} else {
 		listener, err = net.Listen("tcp", fmt.Sprintf("%v:%v", host, port))
+	}
+
+	if enableRefresh {
+		log.Info("Enabling refresh endpoint")
+		e.POST("/refresh", echo.WrapHandler(svcSet.RefreshHandlerFunc()))
 	}
 
 	if err != nil {

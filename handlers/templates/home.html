@@ -12,8 +12,10 @@
       --light-color: #F5F5F5;
       --border-color: #E0E0E0;
       --hover-color: #F0F8FF;
+      --success-color: #4CAF50;
+      --error-color: #a94442;
     }
-    
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       line-height: 1.6;
@@ -22,37 +24,37 @@
       padding: 0;
       background-color: var(--light-color);
     }
-    
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
     }
-    
+
     header {
       background-color: var(--primary-color);
       color: white;
       padding: 20px 0;
       margin-bottom: 30px;
     }
-    
+
     header .container {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    
+
     h1 {
       margin: 0;
       font-size: 1.8rem;
     }
-    
+
     .tileset-list {
       list-style: none;
       padding: 0;
       margin: 0 0 40px 0;
     }
-    
+
     .tileset-item {
       background: white;
       border-radius: 5px;
@@ -61,142 +63,162 @@
       overflow: hidden;
       transition: box-shadow 0.3s ease;
     }
-    
+
     .tileset-item:hover {
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
-    
+
     .tileset-row {
       display: flex;
       align-items: center;
       padding: 15px;
     }
-    
+
     .tileset-name {
       flex-grow: 1;
       font-weight: 600;
       font-size: 1.1rem;
       margin-right: 15px;
     }
-    
-    .tileset-type {
-      background: rgba(0,120,168,0.1);
-      border-radius: 3px;
-      padding: 3px 8px;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      color: var(--primary-color);
-      margin-right: 15px;
-    }
-    
-    .tileset-actions {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .btn {
-      display: inline-block;
-      padding: 8px 15px;
-      border-radius: 3px;
-      text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-    }
-    
-    .btn-primary {
-      background-color: var(--primary-color);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background-color: var(--secondary-color);
-    }
-    
-    .btn-secondary {
-      background-color: #f0f0f0;
-      color: #333;
-      border: none;
-    }
-    
-    .btn-secondary:hover {
-      background-color: #e0e0e0;
-    }
-    
-    .metadata-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.5);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-    
-    .metadata-content {
-      background-color: white;
-      border-radius: 5px;
-      max-width: 800px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    }
-    
-    .metadata-header {
-      background-color: var(--primary-color);
-      color: white;
-      padding: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .metadata-header h2 {
+
+  .tileset-type {
+    background: rgba(0,120,168,0.1);
+    border-radius: 3px;
+    padding: 3px 8px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--primary-color);
+    margin-right: 15px;
+  }
+
+  .tileset-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 8px 15px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: var(--secondary-color);
+  }
+
+  .btn-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+    border: none;
+  }
+
+  .btn-secondary:hover {
+    background-color: #e0e0e0;
+  }
+
+  .btn-warning {
+    background-color: #ff9800;
+    color: white;
+    border: none;
+  }
+
+  .btn-warning:hover {
+    background-color: #e68a00;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+
+  .metadata-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .metadata-content {
+    background-color: white;
+    border-radius: 5px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+
+  .metadata-header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .metadata-header h2 {
       margin: 0;
       font-size: 1.5rem;
     }
-    
+
     .metadata-body {
       padding: 20px;
     }
-    
+
     .metadata-section {
       margin-bottom: 20px;
     }
-    
+
     .metadata-section h3 {
       margin-top: 0;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 8px;
       color: var(--primary-color);
     }
-    
+
     .metadata-table {
       width: 100%;
       border-collapse: collapse;
       margin-bottom: 15px;
     }
-    
+
     .metadata-table th, .metadata-table td {
       padding: 8px 12px;
       text-align: left;
       border-bottom: 1px solid var(--border-color);
     }
-    
+
     .metadata-table th {
       background-color: #f5f5f5;
       font-weight: 600;
     }
-    
+
     .metadata-table tr:hover {
       background-color: var(--hover-color);
     }
-    
+
     .close-btn {
       background: none;
       border: none;
@@ -204,20 +226,20 @@
       font-size: 1.5rem;
       cursor: pointer;
     }
-    
+
     .layer-info {
       background-color: #f9f9f9;
       border-radius: 3px;
       padding: 10px 15px;
       margin-bottom: 10px;
     }
-    
+
     .layer-info h4 {
       margin-top: 0;
       margin-bottom: 8px;
       color: var(--primary-color);
     }
-    
+
     .copy-btn {
       background: none;
       border: none;
@@ -227,16 +249,16 @@
       padding: 0;
       margin-left: 5px;
     }
-    
+
     .copy-btn:hover {
       text-decoration: underline;
     }
-    
+
     .search-bar {
       display: flex;
       margin-bottom: 30px;
     }
-    
+
     .search-input {
       flex: 1;
       padding: 10px 15px;
@@ -244,7 +266,7 @@
       border-radius: 5px 0 0 5px;
       font-size: 1rem;
     }
-    
+
     .search-btn {
       background-color: var(--primary-color);
       color: white;
@@ -254,34 +276,227 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    
+
     .search-btn:hover {
       background-color: var(--secondary-color);
     }
+
+    /* Refresh Modal Styles */
+    .refresh-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+    }
+
+    .refresh-content {
+      position: relative;
+      background-color: white;
+      margin: 10% auto;
+      padding: 0;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 5px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .refresh-header {
+      padding: 15px;
+      background-color: #4CAF50;
+      color: white;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .refresh-header h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .close {
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: -5px;
+    }
+
+    .refresh-body {
+      padding: 15px;
+    }
+
+    .refresh-message {
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .form-group small {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .refresh-actions {
+      text-align: right;
+      margin-top: 20px;
+    }
+
+    .refresh-actions button {
+      padding: 8px 15px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .refresh-actions .cancel {
+      background-color: #f1f1f1;
+      color: #333;
+    }
+
+    .refresh-actions .refresh-tileset {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .success-message {
+      background-color: #dff0d8;
+      border: 1px solid #d6e9c6;
+      color: #3c763d;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+
+    .error-message {
+      background-color: #f2dede;
+      border: 1px solid #ebccd1;
+      color: #a94442;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+
+    .bulk-refresh-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background-color: var(--success-color);
+      color: white;
+      border-radius: 50px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      font-weight: bold;
+      z-index: 100;
+      cursor: pointer;
+    }
+
+    .bulk-refresh-btn:hover {
+      background-color: #3d8b40;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Bulk Refresh Modal */
+    .bulk-refresh-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bulk-refresh-content {
+      background-color: white;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 5px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .bulk-refresh-header {
+      padding: 15px;
+      background-color: var(--success-color);
+      color: white;
+      border-top-left-radius: 5px;
+      border-top-right-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .bulk-refresh-header h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .bulk-refresh-body {
+      padding: 20px;
+    }
+
+    .bulk-refresh-info {
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
     
+    .bulk-refresh-status {
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      display: none;
+    }
+
     @media (max-width: 768px) {
       .tileset-row {
         flex-direction: column;
         align-items: flex-start;
       }
-      
+
       .tileset-name {
         margin-bottom: 10px;
       }
-      
+
       .tileset-type {
         margin-bottom: 10px;
       }
-      
+
       .tileset-actions {
         width: 100%;
       }
-      
+
       .btn {
         flex: 1;
         text-align: center;
       }
-      
+
       header .container {
         flex-direction: column;
         text-align: center;
@@ -301,13 +516,13 @@
       <h1>DVRPC Mapbox Tile Catalog <span class="tileset-count">{{len .Tilesets}} tilesets available</span></h1>
     </div>
   </header>
-  
+
   <div class="container">
     <div class="search-bar">
       <input type="text" id="search-input" class="search-input" placeholder="Search tilesets...">
       <button class="search-btn" id="search-button">Search</button>
     </div>
-    
+
     <ul class="tileset-list" id="tileset-list">
       {{range .Tilesets}}
       <li class="tileset-item" data-name="{{.Name}}" data-url="{{.URL}}">
@@ -317,13 +532,18 @@
           <div class="tileset-actions">
             <a href="{{.URL}}/map" class="btn btn-primary">View Map</a>
             <button class="btn btn-secondary show-metadata" data-url="{{.URL}}">Metadata</button>
+            <button class="btn btn-warning refresh-button" data-name="{{.Name}}" data-url="{{.URL}}">Refresh</button>
           </div>
         </div>
       </li>
       {{end}}
     </ul>
   </div>
-  
+
+  <!-- Floating Bulk Refresh Button -->
+  <button class="bulk-refresh-btn" id="bulk-refresh-btn">Refresh All Tilesets</button>
+
+  <!-- Metadata Modal (Existing) -->
   <div class="metadata-modal" id="metadata-modal">
     <div class="metadata-content">
       <div class="metadata-header">
@@ -335,17 +555,62 @@
       </div>
     </div>
   </div>
-  
+
+  <!-- Single Refresh Modal -->
+  <div class="refresh-modal" id="refresh-modal">
+    <div class="refresh-content">
+      <div class="refresh-header">
+        <h2 id="refresh-title">Refresh Tileset</h2>
+        <span class="close">&times;</span>
+      </div>
+      <div class="refresh-body">
+        <div class="refresh-message"></div>
+        <p>Do you want to refresh this tileset with the latest data from the feature service?</p>
+        <div class="form-group">
+          <label for="feature-service-url">Feature Service URL (optional):</label>
+          <input type="text" id="feature-service-url" placeholder="https://arcgis.dvrpc.org/portal/rest/services/...">
+          <small>Leave blank to use the automatically generated URL</small>
+        </div>
+        <div class="refresh-actions">
+          <button class="cancel">Cancel</button>
+          <button class="refresh-tileset">Refresh Tileset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Refresh Modal -->
+  <div class="bulk-refresh-modal" id="bulk-refresh-modal">
+    <div class="bulk-refresh-content">
+      <div class="bulk-refresh-header">
+        <h2>Refresh All Tilesets</h2>
+        <button class="close-btn" id="close-bulk-modal">&times;</button>
+      </div>
+      <div class="bulk-refresh-body">
+        <div class="bulk-refresh-info">
+          <p>This will refresh all tilesets by downloading the latest data from the DCAT catalog and ArcGIS feature services.</p>
+          <p><strong>Warning:</strong> This process may take a long time depending on the number and size of datasets.</p>
+          <p>You can continue to use the application while the process runs in the background.</p>
+        </div>
+        <div class="bulk-refresh-status" id="bulk-refresh-status"></div>
+        <div class="refresh-actions">
+          <button class="cancel" id="cancel-bulk-refresh">Cancel</button>
+          <button class="refresh-tileset" id="start-bulk-refresh">Start Bulk Refresh</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       // Search functionality
       const searchInput = document.getElementById('search-input');
       const searchButton = document.getElementById('search-button');
       const tilesetItems = document.querySelectorAll('.tileset-item');
-      
+
       function performSearch() {
         const searchTerm = searchInput.value.toLowerCase();
-        
+
         tilesetItems.forEach(item => {
           const name = item.getAttribute('data-name').toLowerCase();
           if (name.includes(searchTerm)) {
@@ -355,36 +620,36 @@
           }
         });
       }
-      
+
       searchButton.addEventListener('click', performSearch);
       searchInput.addEventListener('keyup', function(e) {
         if (e.key === 'Enter') {
           performSearch();
         }
       });
-      
+
       // Metadata modal
       const metadataModal = document.getElementById('metadata-modal');
       const closeModal = document.getElementById('close-modal');
       const metadataTitle = document.getElementById('metadata-title');
       const metadataBody = document.getElementById('metadata-body');
       const metadataButtons = document.querySelectorAll('.show-metadata');
-      
+
       metadataButtons.forEach(button => {
         button.addEventListener('click', async function() {
         const url = this.getAttribute('data-url');
         const name = this.closest('.tileset-item').getAttribute('data-name');
-        
+
         metadataTitle.textContent = name + ' Metadata';
         metadataBody.innerHTML = '<p>Loading metadata...</p>';
         metadataModal.style.display = 'flex';
-        
+
         try {
-            // Construct a full HTTPS URL using the current page's host and the original URL path
-            const fullUrl = `https://${window.location.host}${url.replace(/^https?:\/\/[^/]+/, '')}`;
-            
+            // Construct a full URL using the current page's host and the original URL path
+            const fullUrl = `${window.location.protocol}//${window.location.host}${url.replace(/^https?:\/\/[^/]+/, '')}`;
+
             console.log('Fetching URL:', fullUrl);
-            
+
             const response = await fetch(fullUrl);
             const metadata = await response.json();
             displayMetadata(metadata);
@@ -394,12 +659,12 @@
         }
         });
       });
-      
+
       function displayMetadata(metadata) {
         let html = '<div class="metadata-section">';
         html += '<h3>Basic Information</h3>';
         html += '<table class="metadata-table">';
-        
+
         // Basic metadata
         const basicProps = ['name', 'description', 'format', 'version', 'scheme', 'type', 'minzoom', 'maxzoom', 'tilesize'];
         basicProps.forEach(prop => {
@@ -407,43 +672,43 @@
             html += `<tr><th>${prop}</th><td>${metadata[prop]}</td></tr>`;
           }
         });
-        
+
         // Bounds
         if (metadata.bounds) {
           html += `<tr><th>bounds</th><td>[${metadata.bounds.join(', ')}]</td></tr>`;
         }
-        
+
         html += '</table>';
         html += '</div>';
-        
+
         // Tiles URLs
         if (metadata.tiles && metadata.tiles.length > 0) {
           html += '<div class="metadata-section">';
           html += '<h3>Tile URLs</h3>';
           html += '<table class="metadata-table">';
-          
+
           metadata.tiles.forEach((tile, index) => {
             html += `<tr><th>Tile URL ${index + 1}</th><td>${tile} <button class="copy-btn" data-copy="${tile}">Copy</button></td></tr>`;
           });
-          
+
           html += '</table>';
           html += '</div>';
         }
-        
+
         // Vector layers
         if (metadata.vector_layers && metadata.vector_layers.length > 0) {
           html += '<div class="metadata-section">';
           html += '<h3>Vector Layers</h3>';
-          
+
           metadata.vector_layers.forEach(layer => {
             html += '<div class="layer-info">';
             html += `<h4>${layer.id}</h4>`;
             if (layer.description) html += `<p>${layer.description}</p>`;
-            
+
             html += '<table class="metadata-table">';
             html += `<tr><th>minzoom</th><td>${layer.minzoom}</td></tr>`;
             html += `<tr><th>maxzoom</th><td>${layer.maxzoom}</td></tr>`;
-            
+
             if (layer.fields) {
               html += '<tr><th>Fields</th><td>';
               for (const field in layer.fields) {
@@ -451,30 +716,44 @@
               }
               html += '</td></tr>';
             }
-            
+
             html += '</table>';
             html += '</div>';
           });
-          
+
           html += '</div>';
         }
-        
+
         // Links
         html += '<div class="metadata-section">';
         html += '<h3>Links</h3>';
         html += '<table class="metadata-table">';
-        
+
         if (metadata.map) {
           html += `<tr><th>Map Preview</th><td><a href="${metadata.map}" target="_blank">Open Map</a></td></tr>`;
         }
-        
-        html += `<tr><th>TileJSON</th><td>${window.location.origin}${metadata.url} <button class="copy-btn" data-copy="${window.location.origin}${metadata.url}">Copy</button></td></tr>`;
-        
+
+        // Construct a proper TileJSON URL
+        let tileJsonUrl = '';
+        if (metadata.url) {
+          // Make sure the URL is properly formed - it should be a path that starts with a slash
+          const urlPath = metadata.url.startsWith('/') ? metadata.url : '/' + metadata.url;
+          tileJsonUrl = window.location.origin + urlPath;
+        } else {
+          // If no URL is provided, construct it from the current URL
+          const currentPath = window.location.pathname;
+          // Remove any trailing segments (like /metadata) if present
+          const basePath = currentPath.replace(/\/[^/]+\/?$/, '');
+          tileJsonUrl = window.location.origin + basePath;
+        }
+
+        html += `<tr><th>TileJSON</th><td>${tileJsonUrl} <button class="copy-btn" data-copy="${tileJsonUrl}">Copy</button></td></tr>`;
+
         html += '</table>';
         html += '</div>';
-        
+
         metadataBody.innerHTML = html;
-        
+
         // Setup copy buttons
         document.querySelectorAll('.copy-btn').forEach(btn => {
           btn.addEventListener('click', function() {
@@ -489,15 +768,215 @@
           });
         });
       }
-      
+
       closeModal.addEventListener('click', function() {
         metadataModal.style.display = 'none';
       });
-      
+
       window.addEventListener('click', function(event) {
         if (event.target === metadataModal) {
           metadataModal.style.display = 'none';
         }
+      });
+
+      // Single Refresh functionality
+      const refreshButtons = document.querySelectorAll('.refresh-button');
+      const refreshModal = document.getElementById('refresh-modal');
+      const refreshTitle = document.getElementById('refresh-title');
+      const refreshMessage = document.querySelector('.refresh-message');
+      const featureServiceInput = document.getElementById('feature-service-url');
+      const closeRefreshBtn = document.querySelector('.refresh-modal .close');
+      const cancelBtn = document.querySelector('.refresh-modal .cancel');
+      const refreshTilesetBtn = document.querySelector('.refresh-modal .refresh-tileset');
+      
+      // Function to extract tileset info
+      function getTilesetInfo(button) {
+        const tilesetItem = button.closest('.tileset-item');
+        const tilesetName = tilesetItem.getAttribute('data-name');
+        const tilesetURL = tilesetItem.getAttribute('data-url');
+        
+        return { tilesetName, tilesetURL };
+      }
+      
+      // Add click handlers to refresh buttons
+      refreshButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Get tileset info
+          const { tilesetName, tilesetURL } = getTilesetInfo(this);
+          
+          // Update modal title
+          refreshTitle.textContent = `Refresh Tileset: ${tilesetName}`;
+          
+          // Store the tileset info in the modal as data attributes
+          refreshModal.setAttribute('data-tileset-name', tilesetName);
+          refreshModal.setAttribute('data-tileset-url', tilesetURL);
+          
+          // Clear any previous messages and inputs
+          refreshMessage.innerHTML = '';
+          featureServiceInput.value = '';
+          
+          // Show the modal
+          refreshModal.style.display = 'block';
+        });
+      });
+      
+      // Handle refresh form submission
+      refreshTilesetBtn.addEventListener('click', function() {
+        // Get the tileset info from the modal
+        const tilesetName = refreshModal.getAttribute('data-tileset-name');
+        const tilesetURL = refreshModal.getAttribute('data-tileset-url');
+        const featureServiceURL = featureServiceInput.value;
+        
+        // Show loading message
+        refreshMessage.innerHTML = `<div class="success-message">Refreshing tileset... Please wait, this may take several minutes.</div>`;
+        
+        // Disable the button during processing
+        this.disabled = true;
+        this.textContent = 'Processing...';
+        
+        // Send the request to the server
+        fetch('/refresh', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            tilesetName: tilesetName,
+            tilesetURL: tilesetURL,
+            featureServiceURL: featureServiceURL,
+            mode: 'single'
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Re-enable the button
+          refreshTilesetBtn.disabled = false;
+          refreshTilesetBtn.textContent = 'Refresh Tileset';
+          
+          if (data.success) {
+            refreshMessage.innerHTML = `<div class="success-message">
+              Tileset refreshed successfully! The page will reload in 3 seconds.
+            </div>`;
+            
+            // Reload the page after 3 seconds
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
+          } else {
+            refreshMessage.innerHTML = `<div class="error-message">
+              Error: ${data.message}
+            </div>`;
+          }
+        })
+        .catch(error => {
+          // Re-enable the button
+          refreshTilesetBtn.disabled = false;
+          refreshTilesetBtn.textContent = 'Refresh Tileset';
+          
+          refreshMessage.innerHTML = `<div class="error-message">
+            Error: ${error.message}
+          </div>`;
+        });
+      });
+      
+      // Close the refresh modal
+      function closeRefreshModal() {
+        refreshModal.style.display = 'none';
+        refreshMessage.innerHTML = '';
+        featureServiceInput.value = '';
+      }
+      
+      closeRefreshBtn.addEventListener('click', closeRefreshModal);
+      cancelBtn.addEventListener('click', closeRefreshModal);
+      
+      window.addEventListener('click', function(event) {
+        if (event.target === refreshModal) {
+          closeRefreshModal();
+        }
+      });
+
+      // Bulk Refresh Functionality
+      const bulkRefreshBtn = document.getElementById('bulk-refresh-btn');
+      const bulkRefreshModal = document.getElementById('bulk-refresh-modal');
+      const closeBulkModal = document.getElementById('close-bulk-modal');
+      const cancelBulkRefresh = document.getElementById('cancel-bulk-refresh');
+      const startBulkRefresh = document.getElementById('start-bulk-refresh');
+      const bulkRefreshStatus = document.getElementById('bulk-refresh-status');
+
+      // Show bulk refresh modal
+      bulkRefreshBtn.addEventListener('click', function() {
+        bulkRefreshModal.style.display = 'flex';
+        bulkRefreshStatus.style.display = 'none';
+        bulkRefreshStatus.innerHTML = '';
+      });
+
+      // Close bulk refresh modal
+      function closeBulkRefreshModal() {
+        bulkRefreshModal.style.display = 'none';
+      }
+
+      closeBulkModal.addEventListener('click', closeBulkRefreshModal);
+      cancelBulkRefresh.addEventListener('click', closeBulkRefreshModal);
+
+      window.addEventListener('click', function(event) {
+        if (event.target === bulkRefreshModal) {
+          closeBulkRefreshModal();
+        }
+      });
+
+      // Start bulk refresh
+      startBulkRefresh.addEventListener('click', function() {
+        // Show status
+        bulkRefreshStatus.style.display = 'block';
+        bulkRefreshStatus.innerHTML = '<div class="success-message">Starting bulk refresh of all tilesets... This process may take a long time.</div>';
+        
+        // Disable button during processing
+        this.disabled = true;
+        this.textContent = 'Processing...';
+        
+        // Send request to server
+        fetch('/refresh', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            mode: 'all'
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Re-enable button
+          startBulkRefresh.disabled = false;
+          startBulkRefresh.textContent = 'Start Bulk Refresh';
+          
+          if (data.success) {
+            const refreshedCount = data.refreshed || 0;
+            bulkRefreshStatus.innerHTML = `<div class="success-message">
+              Successfully refreshed ${refreshedCount} tilesets! The page will reload in 5 seconds.
+            </div>`;
+            
+            // Reload page after 5 seconds
+            setTimeout(() => {
+              window.location.reload();
+            }, 5000);
+          } else {
+            bulkRefreshStatus.innerHTML = `<div class="error-message">
+              Error: ${data.message}
+            </div>`;
+          }
+        })
+        .catch(error => {
+          // Re-enable button
+          startBulkRefresh.disabled = false;
+          startBulkRefresh.textContent = 'Start Bulk Refresh';
+          
+          bulkRefreshStatus.innerHTML = `<div class="error-message">
+            Error: ${error.message}
+          </div>`;
+        });
       });
     });
   </script>
