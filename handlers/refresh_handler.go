@@ -225,7 +225,7 @@ func extractTilesetInfo(req RefreshRequest) (string, string, string) {
 
 		// Split the path into components
 		parts := strings.Split(urlPath, "/")
-		if len(parts) >= 4 && parts[1] == "services" {
+		if len(parts) >= 4 && parts[1] == "data" {
 			category = parts[2]
 			datasetName = parts[3]
 		} else {
@@ -322,7 +322,7 @@ func handleSingleRefresh(ctx context.Context, category, datasetName, featureServ
 	tilesetID := filepath.Join(category, datasetName)
 	
 	// Construct the tile URL based on the request context
-	tileURL := fmt.Sprintf("/services/%s/%s/tiles/{z}/{x}/{y}.pbf", category, datasetName)
+	tileURL := fmt.Sprintf("/data/%s/%s/tiles/{z}/{x}/{y}.pbf", category, datasetName)
 
 	// Return success response
 	return RefreshResponse{

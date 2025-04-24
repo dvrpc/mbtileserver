@@ -271,8 +271,8 @@ def generate_mbtiles(geojson_path, mbtiles_path, title, description=None, attrib
             custom_metadata = {
                 "category": category,
                 "dataset_name": dataset_name,
-                "tile_url": f"/services/{category}/{dataset_name}/tiles/{{z}}/{{x}}/{{y}}.pbf",
-                "map": f"/services/{category}/{dataset_name}/map",
+                "tile_url": f"/data/{category}/{dataset_name}/tiles/{{z}}/{{x}}/{{y}}.pbf",
+                "map": f"/data/{category}/{dataset_name}/map",
                 "scheme": "xyz",
                 "tilejson": "2.1.0",
                 "tilesize": "512",
@@ -544,7 +544,7 @@ def process_all_datasets():
                     "name": dataset_name,
                     "feature_service_url": feature_service_url,
                     "timestamp": time.time(),
-                    "tile_url": f"/services/{category}/{dataset_name}/tiles/{{z}}/{{x}}/{{y}}.pbf"
+                    "tile_url": f"/data/{category}/{dataset_name}/tiles/{{z}}/{{x}}/{{y}}.pbf"
                 })
                 
                 logger.info(f"Successfully processed dataset {dataset_name}")
