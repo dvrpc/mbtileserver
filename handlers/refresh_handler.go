@@ -126,7 +126,7 @@ func handleSingleRefresh(ctx context.Context, category, datasetName string) Refr
 		Success:     true,
 		Message:     "Tileset refreshed successfully",
 		TilesetID:   fmt.Sprintf("%s/%s", category, datasetName),
-		TilesetPath: fmt.Sprintf("/services/%s/%s/tiles/{z}/{x}/{y}.pbf", category, datasetName),
+		TilesetPath: fmt.Sprintf("/data/%s/%s/tiles/{z}/{x}/{y}.pbf", category, datasetName),
 	}
 }
 

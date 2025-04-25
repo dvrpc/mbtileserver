@@ -318,7 +318,7 @@ def generate_mbtiles(geojson_path, mbtiles_path, title, description=None, attrib
             custom_metadata = {
                 "category": category,
                 "dataset_name": dataset_name,
-                "tile_url": f"/services/{category}/{dataset_name}/tiles/{{z}}/{{x}}/{{y}}.pbf",
+                "tile_url": f"/data/{category}/{dataset_name}/tiles/{{z}}/{{x}}/{{y}}.pbf",
                 "scheme": "xyz",
                 "tilejson": "2.1.0",
                 "tilesize": "512",
