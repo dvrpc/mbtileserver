@@ -8,3 +8,4 @@ mbtileserver
 .certs/*
 **/node_modules/*
 coverage*
+.env

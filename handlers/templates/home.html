@@ -136,16 +136,6 @@
     background-color: #e68a00;
   }
 
-  .btn-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-  }
-
-  .btn-danger:hover {
-    background-color: #c82333;
-  }
-
   .metadata-modal {
     display: none;
     position: fixed;
@@ -336,29 +326,6 @@
       margin-bottom: 15px;
     }
 
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-
-    .form-group small {
-      color: #666;
-      font-size: 12px;
-    }
-
     .refresh-actions {
       text-align: right;
       margin-top: 20px;
@@ -398,80 +365,6 @@
       padding: 10px;
       margin-bottom: 15px;
       border-radius: 4px;
-    }
-
-    .bulk-refresh-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 12px 20px;
-      background-color: var(--success-color);
-      color: white;
-      border-radius: 50px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      font-weight: bold;
-      z-index: 100;
-      cursor: pointer;
-    }
-
-    .bulk-refresh-btn:hover {
-      background-color: #3d8b40;
-      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    /* Bulk Refresh Modal */
-    .bulk-refresh-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .bulk-refresh-content {
-      background-color: white;
-      width: 80%;
-      max-width: 600px;
-      border-radius: 5px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .bulk-refresh-header {
-      padding: 15px;
-      background-color: var(--success-color);
-      color: white;
-      border-top-left-radius: 5px;
-      border-top-right-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .bulk-refresh-header h2 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .bulk-refresh-body {
-      padding: 20px;
-    }
-
-    .bulk-refresh-info {
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
-    
-    .bulk-refresh-status {
-      margin-top: 15px;
-      padding: 15px;
-      border-radius: 5px;
-      background-color: #f9f9f9;
-      display: none;
     }
 
     @media (max-width: 768px) {
@@ -540,10 +433,7 @@
     </ul>
   </div>
 
-  <!-- Floating Bulk Refresh Button -->
-  <button class="bulk-refresh-btn" id="bulk-refresh-btn">Refresh All Tilesets</button>
-
-  <!-- Metadata Modal (Existing) -->
+  <!-- Metadata Modal -->
   <div class="metadata-modal" id="metadata-modal">
     <div class="metadata-content">
       <div class="metadata-header">
@@ -565,37 +455,10 @@
       </div>
       <div class="refresh-body">
         <div class="refresh-message"></div>
-        <p>Do you want to refresh this tileset with the latest data from the feature service?</p>
-        <div class="form-group">
-          <label for="feature-service-url">Feature Service URL (optional):</label>
-          <input type="text" id="feature-service-url" placeholder="https://arcgis.dvrpc.org/portal/rest/services/...">
-          <small>Leave blank to use the automatically generated URL</small>
-        </div>
+        <p>Do you want to refresh this tileset with the latest data from the database?</p>
         <div class="refresh-actions">
           <button class="cancel">Cancel</button>
           <button class="refresh-tileset">Refresh Tileset</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bulk Refresh Modal -->
-  <div class="bulk-refresh-modal" id="bulk-refresh-modal">
-    <div class="bulk-refresh-content">
-      <div class="bulk-refresh-header">
-        <h2>Refresh All Tilesets</h2>
-        <button class="close-btn" id="close-bulk-modal">&times;</button>
-      </div>
-      <div class="bulk-refresh-body">
-        <div class="bulk-refresh-info">
-          <p>This will refresh all tilesets by downloading the latest data from the DCAT catalog and ArcGIS feature services.</p>
-          <p><strong>Warning:</strong> This process may take a long time depending on the number and size of datasets.</p>
-          <p>You can continue to use the application while the process runs in the background.</p>
-        </div>
-        <div class="bulk-refresh-status" id="bulk-refresh-status"></div>
-        <div class="refresh-actions">
-          <button class="cancel" id="cancel-bulk-refresh">Cancel</button>
-          <button class="refresh-tileset" id="start-bulk-refresh">Start Bulk Refresh</button>
         </div>
       </div>
     </div>
@@ -784,7 +647,6 @@
       const refreshModal = document.getElementById('refresh-modal');
       const refreshTitle = document.getElementById('refresh-title');
       const refreshMessage = document.querySelector('.refresh-message');
-      const featureServiceInput = document.getElementById('feature-service-url');
       const closeRefreshBtn = document.querySelector('.refresh-modal .close');
       const cancelBtn = document.querySelector('.refresh-modal .cancel');
       const refreshTilesetBtn = document.querySelector('.refresh-modal .refresh-tileset');
@@ -796,6 +658,24 @@
         const tilesetURL = tilesetItem.getAttribute('data-url');
         
         return { tilesetName, tilesetURL };
+      }
+      
+      // Extract category and dataset name from URL
+      function extractTilesetDetails(url) {
+        // Expected format: /services/category/dataset/...
+        const parts = url.split('/');
+        let category = '';
+        let dataset = '';
+        
+        for (let i = 0; i < parts.length; i++) {
+          if (parts[i] === 'services' && i + 2 < parts.length) {
+            category = parts[i + 1];
+            dataset = parts[i + 2];
+            break;
+          }
+        }
+        
+        return { category, dataset };
       }
       
       // Add click handlers to refresh buttons
@@ -813,9 +693,8 @@
           refreshModal.setAttribute('data-tileset-name', tilesetName);
           refreshModal.setAttribute('data-tileset-url', tilesetURL);
           
-          // Clear any previous messages and inputs
+          // Clear any previous messages
           refreshMessage.innerHTML = '';
-          featureServiceInput.value = '';
           
           // Show the modal
           refreshModal.style.display = 'block';
@@ -827,7 +706,9 @@
         // Get the tileset info from the modal
         const tilesetName = refreshModal.getAttribute('data-tileset-name');
         const tilesetURL = refreshModal.getAttribute('data-tileset-url');
-        const featureServiceURL = featureServiceInput.value;
+        
+        // Extract category and dataset from URL
+        const { category, dataset } = extractTilesetDetails(tilesetURL);
         
         // Show loading message
         refreshMessage.innerHTML = `<div class="success-message">Refreshing tileset... Please wait, this may take several minutes.</div>`;
@@ -843,10 +724,8 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            tilesetName: tilesetName,
-            tilesetURL: tilesetURL,
-            featureServiceURL: featureServiceURL,
-            mode: 'single'
+            category: category,
+            tilesetName: dataset
           })
         })
         .then(response => response.json())
@@ -885,7 +764,6 @@
       function closeRefreshModal() {
         refreshModal.style.display = 'none';
         refreshMessage.innerHTML = '';
-        featureServiceInput.value = '';
       }
       
       closeRefreshBtn.addEventListener('click', closeRefreshModal);
@@ -895,88 +773,6 @@
         if (event.target === refreshModal) {
           closeRefreshModal();
         }
-      });
-
-      // Bulk Refresh Functionality
-      const bulkRefreshBtn = document.getElementById('bulk-refresh-btn');
-      const bulkRefreshModal = document.getElementById('bulk-refresh-modal');
-      const closeBulkModal = document.getElementById('close-bulk-modal');
-      const cancelBulkRefresh = document.getElementById('cancel-bulk-refresh');
-      const startBulkRefresh = document.getElementById('start-bulk-refresh');
-      const bulkRefreshStatus = document.getElementById('bulk-refresh-status');
-
-      // Show bulk refresh modal
-      bulkRefreshBtn.addEventListener('click', function() {
-        bulkRefreshModal.style.display = 'flex';
-        bulkRefreshStatus.style.display = 'none';
-        bulkRefreshStatus.innerHTML = '';
-      });
-
-      // Close bulk refresh modal
-      function closeBulkRefreshModal() {
-        bulkRefreshModal.style.display = 'none';
-      }
-
-      closeBulkModal.addEventListener('click', closeBulkRefreshModal);
-      cancelBulkRefresh.addEventListener('click', closeBulkRefreshModal);
-
-      window.addEventListener('click', function(event) {
-        if (event.target === bulkRefreshModal) {
-          closeBulkRefreshModal();
-        }
-      });
-
-      // Start bulk refresh
-      startBulkRefresh.addEventListener('click', function() {
-        // Show status
-        bulkRefreshStatus.style.display = 'block';
-        bulkRefreshStatus.innerHTML = '<div class="success-message">Starting bulk refresh of all tilesets... This process may take a long time.</div>';
-        
-        // Disable button during processing
-        this.disabled = true;
-        this.textContent = 'Processing...';
-        
-        // Send request to server
-        fetch('/refresh', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            mode: 'all'
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          // Re-enable button
-          startBulkRefresh.disabled = false;
-          startBulkRefresh.textContent = 'Start Bulk Refresh';
-          
-          if (data.success) {
-            const refreshedCount = data.refreshed || 0;
-            bulkRefreshStatus.innerHTML = `<div class="success-message">
-              Successfully refreshed ${refreshedCount} tilesets! The page will reload in 5 seconds.
-            </div>`;
-            
-            // Reload page after 5 seconds
-            setTimeout(() => {
-              window.location.reload();
-            }, 5000);
-          } else {
-            bulkRefreshStatus.innerHTML = `<div class="error-message">
-              Error: ${data.message}
-            </div>`;
-          }
-        })
-        .catch(error => {
-          // Re-enable button
-          startBulkRefresh.disabled = false;
-          startBulkRefresh.textContent = 'Start Bulk Refresh';
-          
-          bulkRefreshStatus.innerHTML = `<div class="error-message">
-            Error: ${error.message}
-          </div>`;
-        });
       });
     });
   </script>
