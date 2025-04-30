@@ -14,6 +14,7 @@
       --hover-color: #F0F8FF;
       --success-color: #4CAF50;
       --error-color: #a94442;
+      --category-bg: #e9f5f9;
     }
 
     body {
@@ -47,6 +48,18 @@
     h1 {
       margin: 0;
       font-size: 1.8rem;
+    }
+
+    .category-header {
+      background-color: var(--category-bg);
+      padding: 12px 15px;
+      margin: 30px 0 15px 0;
+      border-radius: 5px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      border-left: 4px solid var(--primary-color);
+      background-color: #e1eef3;
     }
 
     .tileset-list {
@@ -367,6 +380,34 @@
       border-radius: 4px;
     }
 
+    /* Make categories collapsible */
+    .category-header {
+      cursor: pointer;
+      position: relative;
+    }
+
+    .category-header::after {
+      content: "▼";
+      position: absolute;
+      right: 15px;
+      transition: transform 0.3s ease;
+    }
+
+    .category-header.collapsed::after {
+      transform: rotate(-90deg);
+    }
+
+    .category-content {
+      transition: max-height 0.3s ease;
+      overflow: hidden;
+      max-height: 10000px; /* A large value to accommodate all content */
+    }
+
+    .category-content.collapsed {
+      max-height: 0;
+      overflow: hidden;
+    }
+
     @media (max-width: 768px) {
       .tileset-row {
         flex-direction: column;
@@ -416,21 +457,52 @@
       <button class="search-btn" id="search-button">Search</button>
     </div>
 
-    <ul class="tileset-list" id="tileset-list">
-      {{range .Tilesets}}
-      <li class="tileset-item" data-name="{{.Name}}" data-url="{{.URL}}">
-        <div class="tileset-row">
-          <div class="tileset-name">{{.Name}}</div>
-          <div class="tileset-type">{{.ImageType}}</div>
-          <div class="tileset-actions">
-            <a href="{{.URL}}/map" class="btn btn-primary">View Map</a>
-            <button class="btn btn-secondary show-metadata" data-url="{{.URL}}">Metadata</button>
-            <button class="btn btn-warning refresh-button" data-name="{{.Name}}" data-url="{{.URL}}">Refresh</button>
+    <!-- Organize tilesets by category -->
+    {{if .Categories}}
+      {{range $category, $tilesets := .Categories}}
+        <div class="category">
+          <div class="category-header" data-category="{{$category}}">{{$category}}</div>
+          <div class="category-content">
+            <ul class="tileset-list">
+              {{range $tilesets}}
+                <li class="tileset-item" data-name="{{.Name}}" data-url="{{.URL}}" data-category="{{$category}}">
+                  <div class="tileset-row">
+                    <div class="tileset-name">{{.Name}}</div>
+                    <div class="tileset-type">{{.ImageType}}</div>
+                    <div class="tileset-actions">
+                      <a href="{{.URL}}/map" class="btn btn-primary">View Map</a>
+                      <button class="btn btn-secondary show-metadata" data-url="{{.URL}}">Metadata</button>
+                      {{if not (eq $category "Project Specific")}}
+                        <button class="btn btn-warning refresh-button" data-name="{{.Name}}" data-url="{{.URL}}">Refresh</button>
+                      {{end}}
+                    </div>
+                  </div>
+                </li>
+              {{end}}
+            </ul>
           </div>
         </div>
-      </li>
       {{end}}
-    </ul>
+    {{else}}
+      <!-- Fallback to old layout if categories aren't provided -->
+      <ul class="tileset-list" id="tileset-list">
+        {{range .Tilesets}}
+          <li class="tileset-item" data-name="{{.Name}}" data-url="{{.URL}}">
+            <div class="tileset-row">
+              <div class="tileset-name">{{.Name}}</div>
+              <div class="tileset-type">{{.ImageType}}</div>
+              <div class="tileset-actions">
+                <a href="{{.URL}}/map" class="btn btn-primary">View Map</a>
+                <button class="btn btn-secondary show-metadata" data-url="{{.URL}}">Metadata</button>
+                {{if not (eq .URL "/data/")}}
+                  <button class="btn btn-warning refresh-button" data-name="{{.Name}}" data-url="{{.URL}}">Refresh</button>
+                {{end}}
+              </div>
+            </div>
+          </li>
+        {{end}}
+      </ul>
+    {{end}}
   </div>
 
   <!-- Metadata Modal -->
@@ -466,6 +538,63 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Note: We've removed the JavaScript contains function
+      // This functionality should be provided by the Go template
+      
+      // Function to categorize tilesets based on URL
+      function categorizeTilesets() {
+        const tilesetItems = document.querySelectorAll('.tileset-item');
+        const categories = {};
+        
+        tilesetItems.forEach(item => {
+          const url = item.getAttribute('data-url');
+          let category = 'Project Specific'; // Default category
+          
+          // Categorize based on URL
+          if (url.indexOf('/boundaries/') !== -1) {
+            category = 'Boundaries';
+          } else if (url.indexOf('/transportation/') !== -1) {
+            category = 'Transportation';
+          } else if (url.indexOf('/demographics/') !== -1) {
+            category = 'Demographics';
+          } else if (url.indexOf('/environment/') !== -1) {
+            category = 'Environment';
+          } else if (url.indexOf('/structures/') !== -1) {
+            category = 'Structures';
+          } else if (url.indexOf('/imagery/') !== -1) {
+            category = 'Imagery';
+          } else if (url.indexOf('/freight/') !== -1) {
+            category = 'Freight';
+          } else if (url.indexOf('/planning/') !== -1) {
+            category = 'Planning';
+          }
+          
+          // Add category attribute to the item
+          item.setAttribute('data-category', category);
+        });
+      }
+      
+      // If we're using the fallback layout without categories, categorize them
+      if (!document.querySelector('.category')) {
+        categorizeTilesets();
+      }
+      
+      // Toggle category collapse
+      const categoryHeaders = document.querySelectorAll('.category-header');
+      categoryHeaders.forEach(header => {
+        // Initially set categories to collapsed
+        header.classList.add('collapsed');
+        const content = header.nextElementSibling;
+        content.classList.add('collapsed');
+        
+        // Add click handler to toggle collapse state
+        header.addEventListener('click', function() {
+          this.classList.toggle('collapsed');
+          const content = this.nextElementSibling;
+          content.classList.toggle('collapsed');
+        });
+      });
+
       // Search functionality
       const searchInput = document.getElementById('search-input');
       const searchButton = document.getElementById('search-button');
@@ -473,13 +602,42 @@
 
       function performSearch() {
         const searchTerm = searchInput.value.toLowerCase();
+        let hasVisibleItems = {};
+        
+        // Initialize all categories as having no visible items
+        document.querySelectorAll('.category-header').forEach(header => {
+          const category = header.getAttribute('data-category');
+          hasVisibleItems[category] = false;
+        });
 
         tilesetItems.forEach(item => {
           const name = item.getAttribute('data-name').toLowerCase();
+          const category = item.getAttribute('data-category');
+          
           if (name.includes(searchTerm)) {
             item.style.display = '';
+            if (category) {
+              hasVisibleItems[category] = true;
+            }
           } else {
             item.style.display = 'none';
+          }
+        });
+        
+        // Hide categories with no visible items
+        document.querySelectorAll('.category').forEach(categoryDiv => {
+          const header = categoryDiv.querySelector('.category-header');
+          const category = header.getAttribute('data-category');
+          
+          if (hasVisibleItems[category]) {
+            categoryDiv.style.display = '';
+            // Expand categories with visible items during search
+            if (searchTerm.length > 0) {
+              header.classList.remove('collapsed');
+              categoryDiv.querySelector('.category-content').classList.remove('collapsed');
+            }
+          } else {
+            categoryDiv.style.display = 'none';
           }
         });
       }

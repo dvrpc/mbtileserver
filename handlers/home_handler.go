@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
@@ -18,6 +19,19 @@ type TemplateRenderer struct {
 // Render renders a template document
 func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.Templates.ExecuteTemplate(w, name, data)
+}
+
+// InitTemplates initializes templates with custom functions
+func InitTemplates(templatesPath string) *template.Template {
+	// Create function map with custom functions
+	funcMap := template.FuncMap{
+		"contains": strings.Contains,
+		"eq":       func(a, b interface{}) bool { return a == b },
+	}
+
+	// Parse templates with the function map
+	tmpl := template.New("").Funcs(funcMap)
+	return template.Must(tmpl.ParseGlob(templatesPath))
 }
 
 // HomeHandler renders the home page listing all available tilesets
@@ -61,7 +75,39 @@ func (s *ServiceSet) HomeHandler(c echo.Context) error {
 		tilesets = append(tilesets, tileInfo)
 	}
 	
+	// Categorize tilesets by URL path
+	categories := make(map[string][]map[string]interface{})
+	
+	for _, tileset := range tilesets {
+		url := tileset["URL"].(string)
+		category := "Project Specific" // Default category
+		
+		// Determine category from URL
+		if strings.Contains(url, "/boundaries/") {
+			category = "Boundaries"
+		} else if strings.Contains(url, "/transportation/") {
+			category = "Transportation"
+		} else if strings.Contains(url, "/demographics/") {
+			category = "Demographics"
+		} else if strings.Contains(url, "/environment/") {
+			category = "Environment"
+		} else if strings.Contains(url, "/freight/") {
+			category = "Freight"
+		} else if strings.Contains(url, "/structures/") {
+			category = "Structures"
+		} else if strings.Contains(url, "/imagery/") {
+			category = "Imagery"		
+		} else if strings.Contains(url, "/planning/") {
+			category = "Planning"
+		}
+		
+		// Add to the appropriate category
+		categories[category] = append(categories[category], tileset)
+	}
+	
+	// Return both the flat list and categorized tilesets
 	return c.Render(http.StatusOK, "home", map[string]interface{}{
-		"Tilesets": tilesets,
+		"Tilesets":   tilesets,
+		"Categories": categories,
 	})
 }
