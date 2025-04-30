@@ -559,12 +559,6 @@
             category = 'Demographics';
           } else if (url.indexOf('/environment/') !== -1) {
             category = 'Environment';
-          } else if (url.indexOf('/structures/') !== -1) {
-            category = 'Structures';
-          } else if (url.indexOf('/imagery/') !== -1) {
-            category = 'Imagery';
-          } else if (url.indexOf('/freight/') !== -1) {
-            category = 'Freight';
           } else if (url.indexOf('/planning/') !== -1) {
             category = 'Planning';
           }
@@ -687,12 +681,19 @@
         html += '<table class="metadata-table">';
 
         // Basic metadata
-        const basicProps = ['name', 'description', 'format', 'version', 'scheme', 'type', 'minzoom', 'maxzoom', 'tilesize'];
+        const basicProps = ['name', 'description', 'format', 'version', 'scheme', 'minzoom', 'maxzoom', 'tilesize'];
         basicProps.forEach(prop => {
           if (metadata[prop] !== undefined) {
             html += `<tr><th>${prop}</th><td>${metadata[prop]}</td></tr>`;
           }
         });
+
+        // Add geometry type from vector_layers or tippecanoe_decisions
+        if (metadata.vector_layers && metadata.vector_layers.length > 0 && metadata.vector_layers[0].geometry) {
+          html += `<tr><th>geometry</th><td>${metadata.vector_layers[0].geometry}</td></tr>`;
+        } else if (metadata.tilestats && metadata.tilestats.layers && metadata.tilestats.layers.length > 0 && metadata.tilestats.layers[0].geometry) {
+          html += `<tr><th>geometry</th><td>${metadata.tilestats.layers[0].geometry}</td></tr>`;
+        }
 
         // Bounds
         if (metadata.bounds) {
@@ -702,19 +703,6 @@
         html += '</table>';
         html += '</div>';
 
-        // Tiles URLs
-        if (metadata.tiles && metadata.tiles.length > 0) {
-          html += '<div class="metadata-section">';
-          html += '<h3>Tile URLs</h3>';
-          html += '<table class="metadata-table">';
-
-          metadata.tiles.forEach((tile, index) => {
-            html += `<tr><th>Tile URL ${index + 1}</th><td>${tile} <button class="copy-btn" data-copy="${tile}">Copy</button></td></tr>`;
-          });
-
-          html += '</table>';
-          html += '</div>';
-        }
 
         // Vector layers
         if (metadata.vector_layers && metadata.vector_layers.length > 0) {
@@ -750,11 +738,13 @@
         html += '<h3>Links</h3>';
         html += '<table class="metadata-table">';
 
+        // Map Preview URL
         if (metadata.map) {
-          html += `<tr><th>Map Preview</th><td><a href="${metadata.map}" target="_blank">Open Map</a></td></tr>`;
+          const mapUrl = metadata.map.replace('http://localhost:8000', window.location.origin);
+          html += `<tr><th>Map Preview</th><td><a href="${mapUrl}" target="_blank">Open Map</a> <button class="copy-btn" data-copy="${mapUrl}"></td></tr>`;
         }
 
-        // Construct a proper TileJSON URL
+        // Construct TileJSON URL
         let tileJsonUrl = '';
         if (metadata.url) {
           // Make sure the URL is properly formed - it should be a path that starts with a slash
@@ -767,11 +757,24 @@
           const basePath = currentPath.replace(/\/[^/]+\/?$/, '');
           tileJsonUrl = window.location.origin + basePath;
         }
+        
+        // Ensure the TileJSON URL is complete by checking for services path
+        if (!tileJsonUrl.includes('/services/') && metadata.tiles && metadata.tiles.length > 0) {
+          const tileUrlPath = metadata.tiles[0].replace(/^https?:\/\/[^\/]+/, '').replace(/\/tiles\/.*/, '');
+          tileJsonUrl = window.location.origin + tileUrlPath;
+        }
+        html += `<tr><th>TileJSON URL</th><td>${tileJsonUrl} <button class="copy-btn" data-copy="${tileJsonUrl}">Copy</button></td></tr>`;
 
-        html += `<tr><th>TileJSON</th><td>${tileJsonUrl} <button class="copy-btn" data-copy="${tileJsonUrl}">Copy</button></td></tr>`;
-
-        html += '</table>';
-        html += '</div>';
+        // Add hosted tile URL pattern from tilejson or construct it
+        let tileUrlPattern = '';
+        if (metadata.tile_url) {
+          tileUrlPattern = window.location.origin + metadata.tile_url;
+        } else if (metadata.tiles && metadata.tiles.length > 0) {
+          tileUrlPattern = metadata.tiles[0].replace('http://localhost:8000', window.location.origin);
+        } else {
+          tileUrlPattern = tileJsonUrl.replace(/\/?$/, '') + '/tiles/{z}/{x}/{y}.pbf';
+        }
+        html += `<tr><th>Tile URL Pattern</th><td>${tileUrlPattern} <button class="copy-btn" data-copy="${tileUrlPattern}">Copy</button></td></tr>`;
 
         metadataBody.innerHTML = html;
 
