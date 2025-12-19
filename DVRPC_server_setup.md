@@ -138,6 +138,18 @@ The MBTileServer is configured with the following options:
 
 ## Maintenance 
 
+### Generating New Tilesets
+If you need to publish/refresh a new tileset you can use the following command.  The table must exist in the gis db and be publicly shared for this action to work.
+
+```bash
+curl -X POST https://tiles.dvrpc.org/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"category":"transportation","tilesetName":"pedestriannetwork_coverage"}'
+  ```
+
+### Removing Tilesets
+Currently the database audit doesn't detect and remove old tilesets.  You will have to navigate to the tileset directory and `sudo rm` the mbtile file.
+
 ### Viewing Logs
 ```bash
 sudo journalctl -u mbtileserver.service -f
