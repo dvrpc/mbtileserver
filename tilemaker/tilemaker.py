@@ -29,7 +29,7 @@ logging.basicConfig(
 logger = logging.getLogger('tilemaker')
 
 # Configuration
-DCAT_URL = os.environ.get("DCAT_URL", "https://arcgis.dvrpc.org/api/dcat.json")
+DCAT_URL = os.environ.get("DCAT_URL", "https://gis.dvrpc.org/api/dcat.json")
 
 # Database connection parameters
 PG_HOST = os.environ.get("PG_HOST", "dvrpcgis-db.postgres.database.azure.com")
