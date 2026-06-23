@@ -100,6 +100,14 @@ func (ts *Tileset) reload() error {
 	}
 	ts.db = db
 
+	metadata, err := db.ReadMetadata()
+	if err != nil {
+		return fmt.Errorf("Invalid mbtiles file %q: %v", filename, err)
+	}
+	if name, ok := metadata["name"].(string); ok && name != "" {
+		ts.name = name
+	}
+
 	return nil
 }
 
