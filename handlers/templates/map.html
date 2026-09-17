@@ -72,6 +72,22 @@
     const basemapStyleURL = {{.BasemapStyleURL}};
     const basemapTilesURL = {{.BasemapTilesURL}};
 
+    // Overture Maps PMTiles basemap, used when the server was started without
+    // -basemap-style-url or -basemap-tiles-url, so previews still get
+    // geographic context without an external basemap provider or API key.
+    // Cartography comes from the bundled overture-style.json; the archives
+    // themselves are read straight from Overture's public tile host over HTTP
+    // range requests, so nothing is proxied through this server.
+    const OVERTURE_CATALOG_URL = "https://stac.overturemaps.org/catalog.json";
+    // Only used if the STAC catalog cannot be read; the catalog is what
+    // normally decides which release the preview draws.
+    const OVERTURE_FALLBACK_RELEASE = "2026-08-19.0";
+    // Themes referenced by the layers in overture-style.json.
+    const OVERTURE_THEMES = ["base", "buildings", "divisions", "transportation"];
+    const OVERTURE_ATTRIBUTION = '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap</a> <a href="https://docs.overturemaps.org/attribution" target="_blank">&copy; Overture Maps Foundation</a>';
+
+    const useOvertureBasemap = !basemapStyleURL && !basemapTilesURL;
+
     function isWebglSupported() {
       if (window.WebGLRenderingContext) {
         const canvas = document.createElement('canvas');
@@ -109,10 +125,121 @@
       zoom = Math.max(viewport.zoom - 1, zoom);
     }
 
+    // The map waits on the STAC lookup before drawing, so a stalled request must
+    // not hold it indefinitely; a timeout rejects like any other failure and
+    // the pinned release is used instead.
+    const OVERTURE_CATALOG_TIMEOUT_MS = 4000;
+
+    async function fetchJSON(url) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), OVERTURE_CATALOG_TIMEOUT_MS);
+      try {
+        // The timeout covers reading the body too, not just the headers.
+        const response = await fetch(url, { signal: controller.signal });
+        if (!response.ok) {
+          throw new Error(url + " responded with " + response.status);
+        }
+        return await response.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // Walks the Overture STAC catalog (root -> latest release -> theme) to find
+    // the PMTiles archive published for each theme. Anything that cannot be
+    // resolved falls back to the pinned release so the basemap still draws.
+    async function resolveOverturePMTiles() {
+      const fallbackURL = function(theme) {
+        return "https://tiles.overturemaps.org/" + OVERTURE_FALLBACK_RELEASE + "/" + theme + ".pmtiles";
+      };
+
+      let releaseURL;
+      let releaseCatalog;
+      try {
+        const rootCatalog = await fetchJSON(OVERTURE_CATALOG_URL);
+        const rootLinks = rootCatalog.links || [];
+        const releaseLink = rootLinks.find(link => link.rel === "child" && link.latest)
+          || rootLinks.find(link => link.rel === "child" && rootCatalog.latest && link.href.indexOf(rootCatalog.latest) !== -1);
+        if (!releaseLink) {
+          throw new Error("no latest release link in " + OVERTURE_CATALOG_URL);
+        }
+        releaseURL = new URL(releaseLink.href, OVERTURE_CATALOG_URL).href;
+        releaseCatalog = await fetchJSON(releaseURL);
+      } catch (err) {
+        console.warn("Overture STAC catalog unavailable, falling back to release " + OVERTURE_FALLBACK_RELEASE, err);
+        return Object.fromEntries(OVERTURE_THEMES.map(theme => [theme, fallbackURL(theme)]));
+      }
+
+      const entries = await Promise.all(OVERTURE_THEMES.map(async function(theme) {
+        try {
+          const themeLink = (releaseCatalog.links || [])
+            .find(link => link.rel === "child" && link.title === theme);
+          if (!themeLink) {
+            throw new Error("release " + releaseCatalog.id + " has no " + theme + " theme");
+          }
+          const themeURL = new URL(themeLink.href, releaseURL).href;
+          const themeCatalog = await fetchJSON(themeURL);
+          const pmtilesLink = (themeCatalog.links || []).find(link => link.rel === "pmtiles");
+          if (!pmtilesLink) {
+            throw new Error("no pmtiles link in " + themeURL);
+          }
+          return [theme, new URL(pmtilesLink.href, themeURL).href];
+        } catch (err) {
+          console.warn("Unable to resolve Overture " + theme + " PMTiles, falling back to release " + OVERTURE_FALLBACK_RELEASE, err);
+          return [theme, fallbackURL(theme)];
+        }
+      }));
+
+      return Object.fromEntries(entries);
+    }
+
+    // Builds the Overture basemap from the bundled style, one PMTiles vector
+    // source per theme. Label layers are returned separately so they can be
+    // drawn above the tileset overlay instead of underneath it.
+    function overtureBasemap(pmtilesURLs) {
+      const sources = {};
+
+      OVERTURE_THEMES.forEach(function(theme) {
+        const source = {
+          type: "vector",
+          url: "pmtiles://" + pmtilesURLs[theme]
+        };
+        // Credit the whole basemap once; every theme shares the same terms, and
+        // MapLibre would otherwise repeat the attribution for each source.
+        if (theme === "base") {
+          source.attribution = OVERTURE_ATTRIBUTION;
+        }
+        sources[theme] = source;
+      });
+
+      return {
+        sources,
+        base: overtureStyle.layers.filter(layer => layer.type !== "symbol"),
+        labels: overtureStyle.layers.filter(layer => layer.type === "symbol")
+      };
+    }
+
+    let map;
+
     if (useVector) {
+      initVectorMap().catch(err => console.error("Unable to initialize map", err));
+    } else {
+      initLeafletMap();
+    }
+
+    async function initVectorMap() {
       const sources = {};
       const layers = [];
+      const labelLayers = [];
       const layersBySourceLayer = {};
+
+      if (useOvertureBasemap) {
+        maplibregl.addProtocol("pmtiles", new pmtiles.Protocol().tile);
+        const basemap = overtureBasemap(await resolveOverturePMTiles());
+        Object.assign(sources, basemap.sources);
+        layers.push(...basemap.base);
+        labelLayers.push(...basemap.labels);
+      }
 
       if (basemapTilesURL) {
         sources.basemap = {
@@ -205,13 +332,18 @@
         })
       }
 
+      // Basemap labels go on top of the overlay so place and road names stay
+      // readable through it.
+      layers.push(...labelLayers);
+
       const style = basemapStyleURL || {
         version: 8,
+        glyphs: overtureStyle.glyphs,
         sources,
         layers
       }
 
-      var map = new maplibregl.Map({
+      map = new maplibregl.Map({
         container: "map",
         style,
         minZoom: tileJSON.minzoom,
@@ -315,9 +447,11 @@
           });
         }
       });
-    } else {
-      // Leaflet-based fallback rendering for browsers without WebGL
-      var map = L.map('map', { minZoom: 1, zoomControl: false });
+    }
+
+    // Leaflet-based fallback rendering for browsers without WebGL
+    function initLeafletMap() {
+      map = L.map('map', { minZoom: 1, zoomControl: false });
       new L.Control.Zoom({ position: 'topright' }).addTo(map);
       
       var tile_urls = tileJSON.tiles || [];

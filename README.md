@@ -376,13 +376,52 @@ returns something like this:
 
 It uses `MapLibre GL` to render vector and image tiles.
 
-No built-in basemap is included by default in the map preview.  You can use
-one of the following options to include a basemap.
+### Default basemap (Overture Maps)
+
+By default the preview draws an [Overture Maps](https://overturemaps.org/)
+basemap, so previews have geographic context without an API key or a basemap
+provider account.
+
+The tiles are [PMTiles](https://docs.protomaps.com/pmtiles/) archives read
+directly from Overture's public tile host by the browser over HTTP range
+requests; they are not proxied through `mbtileserver`, and only the byte ranges
+covering the current view are fetched.  Which archives to read is resolved at
+page load from Overture's [STAC catalog](https://stac.overturemaps.org/catalog.json)
+(root catalog -> latest release -> each theme's `pmtiles` link), so previews
+follow the latest Overture release without a code change.  If the catalog cannot
+be reached, the preview falls back to a release pinned in
+`handlers/templates/map.html`.
+
+This means the preview page makes requests to `stac.overturemaps.org`,
+`tiles.overturemaps.org`, and `protomaps.github.io` (map label glyphs).  Setting
+either option below replaces the Overture basemap entirely, and no requests are
+made to those hosts.
+
+The cartography is Overture's "explore" style, assembled from
+[OvertureMaps/explore-site](https://github.com/OvertureMaps/explore-site) (MIT)
+into `handlers/templates/static/overture-style.json` and restyled as a muted
+gray basemap in the spirit of CARTO's Positron, so the tileset being previewed
+stands out.  The nine-county DVRPC region is drawn lighter than its
+surroundings to mark it as the focus area, and streets stay light so they read
+against both.  To regenerate the style — to pick up upstream cartography
+changes, adjust colors or the highlighted region, or include themes such as
+`places` — edit the constants at the top of
+`handlers/templates/static/tools/build-overture-style.mjs` and run:
+
+```
+cd handlers/templates/static
+npm run build:overture-style
+npm run build
+```
+
+The theme list in `map.html` (`OVERTURE_THEMES`) must match the sources the
+regenerated style references.
 
 ### Basemap style URL
 
-To include a [MapLibre GL style URL](https://maplibre.org/maplibre-style-spec/)
-use the `--basemap-style-url` option to provide a URL to that style:
+To use a different basemap, provide a
+[MapLibre GL style URL](https://maplibre.org/maplibre-style-spec/) with the
+`--basemap-style-url` option:
 
 ```
 --basemap-style-url "https://tiles.stadiamaps.com/styles/stamen_toner_lite.json?api_key=<your key>"

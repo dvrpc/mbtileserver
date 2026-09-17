@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+-   the map preview now includes an Overture Maps basemap by default, rendered
+    from PMTiles archives resolved at page load from Overture's STAC catalog.
+    `--basemap-style-url` and `--basemap-tiles-url` continue to take precedence.
+    The basemap is styled as a muted gray map with the DVRPC region highlighted,
+    and falls back to a pinned release if the catalog is slow or unreachable.
+
 ## 0.11.0
 
 -   support returning missing image tiles as HTTP 404 instead of blank tiles using
