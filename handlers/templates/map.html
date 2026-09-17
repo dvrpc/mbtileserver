@@ -260,7 +260,11 @@
           tiles: tileJSON.tiles,
           minzoom: tileJSON.minzoom,
           maxzoom: tileJSON.maxzoom,
-          tileSize: tileJSON.tilesize || 256
+          // MapLibre only accepts a tileSize of exactly 512 for vector sources
+          // and throws otherwise, which stalls the whole style. Tileset
+          // metadata can store tilesize as a string ("512") or omit it, so
+          // don't pass it through.
+          tileSize: 512
         }
 
         tileJSON.vector_layers.forEach(function(srcLyr, i) {
