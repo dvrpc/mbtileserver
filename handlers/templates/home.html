@@ -139,16 +139,6 @@
     background-color: #e0e0e0;
   }
 
-  .btn-warning {
-    background-color: #ff9800;
-    color: white;
-    border: none;
-  }
-
-  .btn-warning:hover {
-    background-color: #e68a00;
-  }
-
   .metadata-modal {
     display: none;
     position: fixed;
@@ -284,102 +274,6 @@
       background-color: var(--secondary-color);
     }
 
-    /* Refresh Modal Styles */
-    .refresh-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 9999;
-    }
-
-    .refresh-content {
-      position: relative;
-      background-color: white;
-      margin: 10% auto;
-      padding: 0;
-      width: 80%;
-      max-width: 500px;
-      border-radius: 5px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .refresh-header {
-      padding: 15px;
-      background-color: #4CAF50;
-      color: white;
-      border-top-left-radius: 5px;
-      border-top-right-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .refresh-header h2 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .close {
-      color: white;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: -5px;
-    }
-
-    .refresh-body {
-      padding: 15px;
-    }
-
-    .refresh-message {
-      margin-bottom: 15px;
-    }
-
-    .refresh-actions {
-      text-align: right;
-      margin-top: 20px;
-    }
-
-    .refresh-actions button {
-      padding: 8px 15px;
-      margin-left: 10px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    .refresh-actions .cancel {
-      background-color: #f1f1f1;
-      color: #333;
-    }
-
-    .refresh-actions .refresh-tileset {
-      background-color: #4CAF50;
-      color: white;
-    }
-
-    .success-message {
-      background-color: #dff0d8;
-      border: 1px solid #d6e9c6;
-      color: #3c763d;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-    }
-
-    .error-message {
-      background-color: #f2dede;
-      border: 1px solid #ebccd1;
-      color: #a94442;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 4px;
-    }
-
     /* Make categories collapsible */
     .category-header {
       cursor: pointer;
@@ -472,9 +366,6 @@
                     <div class="tileset-actions">
                       <a href="{{.URL}}/map" class="btn btn-primary">View Map</a>
                       <button class="btn btn-secondary show-metadata" data-url="{{.URL}}">Metadata</button>
-                      {{if not (eq $category "Project Specific")}}
-                        <button class="btn btn-warning refresh-button" data-name="{{.Name}}" data-url="{{.URL}}">Refresh</button>
-                      {{end}}
                     </div>
                   </div>
                 </li>
@@ -494,9 +385,6 @@
               <div class="tileset-actions">
                 <a href="{{.URL}}/map" class="btn btn-primary">View Map</a>
                 <button class="btn btn-secondary show-metadata" data-url="{{.URL}}">Metadata</button>
-                {{if not (eq .URL "/data/")}}
-                  <button class="btn btn-warning refresh-button" data-name="{{.Name}}" data-url="{{.URL}}">Refresh</button>
-                {{end}}
               </div>
             </div>
           </li>
@@ -514,24 +402,6 @@
       </div>
       <div class="metadata-body" id="metadata-body">
         <!-- Metadata content will be loaded here -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Single Refresh Modal -->
-  <div class="refresh-modal" id="refresh-modal">
-    <div class="refresh-content">
-      <div class="refresh-header">
-        <h2 id="refresh-title">Refresh Tileset</h2>
-        <span class="close">&times;</span>
-      </div>
-      <div class="refresh-body">
-        <div class="refresh-message"></div>
-        <p>Do you want to refresh this tileset with the latest data from the database?</p>
-        <div class="refresh-actions">
-          <button class="cancel">Cancel</button>
-          <button class="refresh-tileset">Refresh Tileset</button>
-        </div>
       </div>
     </div>
   </div>
@@ -803,138 +673,6 @@
         }
       });
 
-      // Single Refresh functionality
-      const refreshButtons = document.querySelectorAll('.refresh-button');
-      const refreshModal = document.getElementById('refresh-modal');
-      const refreshTitle = document.getElementById('refresh-title');
-      const refreshMessage = document.querySelector('.refresh-message');
-      const closeRefreshBtn = document.querySelector('.refresh-modal .close');
-      const cancelBtn = document.querySelector('.refresh-modal .cancel');
-      const refreshTilesetBtn = document.querySelector('.refresh-modal .refresh-tileset');
-      
-      // Function to extract tileset info
-      function getTilesetInfo(button) {
-        const tilesetItem = button.closest('.tileset-item');
-        const tilesetName = tilesetItem.getAttribute('data-name');
-        const tilesetURL = tilesetItem.getAttribute('data-url');
-        
-        return { tilesetName, tilesetURL };
-      }
-      
-      // Extract category and dataset name from URL
-      function extractTilesetDetails(url) {
-        // Expected format: /services/category/dataset/...
-        const parts = url.split('/');
-        let category = '';
-        let dataset = '';
-        
-        for (let i = 0; i < parts.length; i++) {
-          if (parts[i] === 'data' && i + 2 < parts.length) {
-            category = parts[i + 1];
-            dataset = parts[i + 2];
-            break;
-          }
-        }
-        
-        return { category, dataset };
-      }
-      
-      // Add click handlers to refresh buttons
-      refreshButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          // Get tileset info
-          const { tilesetName, tilesetURL } = getTilesetInfo(this);
-          
-          // Update modal title
-          refreshTitle.textContent = `Refresh Tileset: ${tilesetName}`;
-          
-          // Store the tileset info in the modal as data attributes
-          refreshModal.setAttribute('data-tileset-name', tilesetName);
-          refreshModal.setAttribute('data-tileset-url', tilesetURL);
-          
-          // Clear any previous messages
-          refreshMessage.innerHTML = '';
-          
-          // Show the modal
-          refreshModal.style.display = 'block';
-        });
-      });
-      
-      // Handle refresh form submission
-      refreshTilesetBtn.addEventListener('click', function() {
-        // Get the tileset info from the modal
-        const tilesetName = refreshModal.getAttribute('data-tileset-name');
-        const tilesetURL = refreshModal.getAttribute('data-tileset-url');
-        
-        // Extract category and dataset from URL
-        const { category, dataset } = extractTilesetDetails(tilesetURL);
-        
-        // Show loading message
-        refreshMessage.innerHTML = `<div class="success-message">Refreshing tileset... Please wait, this may take several minutes.</div>`;
-        
-        // Disable the button during processing
-        this.disabled = true;
-        this.textContent = 'Processing...';
-        
-        // Send the request to the server
-        fetch('/refresh', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            category: category,
-            tilesetName: dataset
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          // Re-enable the button
-          refreshTilesetBtn.disabled = false;
-          refreshTilesetBtn.textContent = 'Refresh Tileset';
-          
-          if (data.success) {
-            refreshMessage.innerHTML = `<div class="success-message">
-              Tileset refreshed successfully! The page will reload in 3 seconds.
-            </div>`;
-            
-            // Reload the page after 3 seconds
-            setTimeout(() => {
-              window.location.reload();
-            }, 3000);
-          } else {
-            refreshMessage.innerHTML = `<div class="error-message">
-              Error: ${data.message}
-            </div>`;
-          }
-        })
-        .catch(error => {
-          // Re-enable the button
-          refreshTilesetBtn.disabled = false;
-          refreshTilesetBtn.textContent = 'Refresh Tileset';
-          
-          refreshMessage.innerHTML = `<div class="error-message">
-            Error: ${error.message}
-          </div>`;
-        });
-      });
-      
-      // Close the refresh modal
-      function closeRefreshModal() {
-        refreshModal.style.display = 'none';
-        refreshMessage.innerHTML = '';
-      }
-      
-      closeRefreshBtn.addEventListener('click', closeRefreshModal);
-      cancelBtn.addEventListener('click', closeRefreshModal);
-      
-      window.addEventListener('click', function(event) {
-        if (event.target === refreshModal) {
-          closeRefreshModal();
-        }
-      });
     });
   </script>
 </body>
