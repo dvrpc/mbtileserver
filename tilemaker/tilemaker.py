@@ -170,17 +170,23 @@ def export_table_to_geojson(conn, schema, table, output_file):
                 return False
             
             # Verify a sample coordinate to ensure transformation worked
-            if feature_count > 0 and 'geometry' in geojson_data['features'][0]:
-                geom = geojson_data['features'][0]['geometry']
-                if geom['type'] == 'Point':
-                    coords = geom['coordinates']
-                    logger.info(f"Sample coordinates (longitude, latitude): {coords}")
-                    # Check if coordinates look like WGS84 (rough check for Philadelphia area)
-                    if (-180 <= coords[0] <= 180) and (-90 <= coords[1] <= 90):
-                        logger.info("Coordinate transformation appears successful")
-                    else:
-                        logger.warning("Coordinates might not be properly transformed to WGS84")
-                
+            # Skip features with null geometries when picking a sample
+            null_geom_count = sum(1 for f in geojson_data['features'] if not f.get('geometry'))
+            if null_geom_count > 0:
+                logger.warning(f"{null_geom_count} features have null geometries and will be dropped")
+            geom = next((f['geometry'] for f in geojson_data['features'] if f.get('geometry')), None)
+            if geom is None:
+                logger.error("No features with geometry found in exported GeoJSON")
+                return False
+            if geom['type'] == 'Point':
+                coords = geom['coordinates']
+                logger.info(f"Sample coordinates (longitude, latitude): {coords}")
+                # Check if coordinates look like WGS84 (rough check for Philadelphia area)
+                if (-180 <= coords[0] <= 180) and (-90 <= coords[1] <= 90):
+                    logger.info("Coordinate transformation appears successful")
+                else:
+                    logger.warning("Coordinates might not be properly transformed to WGS84")
+            
             return True
         except Exception as e:
             logger.error(f"Error validating GeoJSON: {e}")
