@@ -6,6 +6,7 @@ Includes proper coordinate transformation from source projection to WGS84.
 
 import json
 import os
+import re
 import subprocess
 import requests
 import time
@@ -47,6 +48,10 @@ DESCRIPTION = os.environ.get("DESCRIPTION", "")
 ATTRIBUTION = os.environ.get("ATTRIBUTION", "")
 OUTPUT_DIR = os.environ.get("TILE_DIR", "./tilesets")
 WORKING_DIR = os.environ.get("WORKING_DIR", "/tmp/tilemaker")
+
+def redact_password(text):
+    """Hide the database password in text that gets logged or returned to clients"""
+    return re.sub(r"password=\S+", "password=***", text)
 
 def get_database_connection():
     """Establish a connection to the PostgreSQL database"""
@@ -137,13 +142,13 @@ def export_table_to_geojson(conn, schema, table, output_file):
         if source_srid != 4326:
             cmd.extend(["-s_srs", f"EPSG:{source_srid}"])
         
-        logger.info(f"Running command: {' '.join(cmd)}")
+        logger.info(f"Running command: {redact_password(' '.join(cmd))}")
         
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, stderr = process.communicate()
         
         if process.returncode != 0:
-            logger.error(f"ogr2ogr error: {stderr.decode('utf-8')}")
+            logger.error(f"ogr2ogr error: {redact_password(stderr.decode('utf-8'))}")
             return False
             
         logger.info(f"Successfully exported table {table_spec} to {output_file}")
